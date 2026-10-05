@@ -4,17 +4,17 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>LIM Calcoli in Colonna - Maestro Digitale</title>
-
-    <!-- Tailwind CSS (locale) - Scarica tailwind.js e inseriscilo nella stessa cartella del file index.html -->
-    <script src="tailwind.js"></script>
-
+    <!-- Tailwind CSS embedded via CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
     <style>
+        @import url('https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600;700&family=Inter:wght@400;600;800&display=swap');
+
         html {
             font-size: 15px;
         }
 
         body {
-            font-family: 'Fredoka', 'Inter', system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            font-family: 'Fredoka', 'Inter', sans-serif;
             user-select: none;
             -webkit-user-select: none;
             touch-action: none;
@@ -244,9 +244,18 @@
             </div>
         </main>
 
-        <!-- Right Sidebar Panel - Touch keypad positioned at bottom -->
-        <aside id="keypadPanel" class="w-72 md:w-80 bg-white border-l border-slate-200 p-4 flex flex-col justify-end space-y-3 shadow-2xl z-30 flex-shrink-0">
-            <div class="mt-auto space-y-3">
+        <!-- Right Sidebar Panel - Avatar in Top Position & Keypad at Bottom -->
+        <aside id="keypadPanel" class="w-72 md:w-80 bg-white border-l border-slate-200 p-4 flex flex-col justify-between shadow-2xl z-30 flex-shrink-0 overflow-y-auto">
+            
+            <!-- Top Avatar Section -->
+            <div class="flex flex-col items-center justify-center border-b border-slate-100 pb-3">
+                <img src="sergio.png" alt="Maestro Sergio" class="w-24 h-24 md:w-28 md:h-28 object-contain rounded-full border-2 border-amber-400 shadow-sm bg-amber-50">
+                <span class="mt-2 font-extrabold text-slate-800 text-base md:text-lg tracking-wide">Maestro Sergio</span>
+                <span class="mt-0.5 text-[10px] font-semibold text-slate-500 bg-slate-100 px-2 py-0.5 rounded-full border border-slate-200">Licenza Open Source (MIT)</span>
+            </div>
+
+            <!-- Bottom Keypad Section -->
+            <div class="mt-auto space-y-3 pt-3">
                 <div id="solutionBox" class="hidden bg-emerald-500 text-white p-3 rounded-2xl shadow-md border-2 border-white flex items-center justify-between">
                     <div>
                         <span class="text-[10px] font-bold uppercase tracking-wider block opacity-90">Soluzione Corretta</span>
@@ -283,9 +292,9 @@
                         </button>
                     </div>
                 </div>
-            </div>
 
-            <div id="feedbackBox" class="hidden p-3 rounded-2xl font-bold text-center text-xs shadow-md transition-all"></div>
+                <div id="feedbackBox" class="hidden p-3 rounded-2xl font-bold text-center text-xs shadow-md transition-all"></div>
+            </div>
         </aside>
     </div>
 
@@ -801,9 +810,9 @@
 
             const templateStyle = `grid-template-columns: 24px repeat(${maxDigits}, minmax(64px, 80px));`;
 
-            // Intestazione Dividendo e Pulsanti per l'Abbassamento delle cifre
+            // Row 1 Left: Intestazione Dividendo e Pulsanti "abbasso di:"
             const arcHeader = document.createElement('div');
-            arcHeader.className = 'col-span-full flex items-center justify-between border-b pb-2 mb-1';
+            arcHeader.className = 'col-span-full flex items-center justify-between border-b pb-1.5 min-h-[32px]';
 
             const labelDiv = document.createElement('span');
             labelDiv.className = 'text-xs font-bold text-slate-400 uppercase tracking-wider';
@@ -813,7 +822,7 @@
             const arcControls = document.createElement('div');
             arcControls.className = 'flex items-center space-x-1.5';
             arcControls.innerHTML = `
-                <span class="text-[11px] font-bold text-amber-700 mr-1">Abbasso di:</span>
+                <span class="text-[11px] font-bold text-amber-700 mr-1">abbasso di:</span>
                 <button onclick="addDivisionArc(1)" class="bg-amber-100 hover:bg-amber-200 text-amber-900 font-bold px-2 py-1 rounded-lg text-xs shadow-sm transition">⌒ 1 Cifra</button>
                 <button onclick="addDivisionArc(2)" class="bg-amber-100 hover:bg-amber-200 text-amber-900 font-bold px-2 py-1 rounded-lg text-xs shadow-sm transition">⌒ 2 Cifre</button>
                 <button onclick="addDivisionArc(3)" class="bg-amber-100 hover:bg-amber-200 text-amber-900 font-bold px-2 py-1 rounded-lg text-xs shadow-sm transition">⌒ 3 Cifre</button>
@@ -822,7 +831,7 @@
             arcHeader.appendChild(arcControls);
             workArea.appendChild(arcHeader);
 
-            // Riga Visualizzazione Archetti
+            // Row 2 Left: Visualizzazione grafica degli archetti sopra il Dividendo
             const arcVisualRow = document.createElement('div');
             arcVisualRow.className = 'grid gap-3 items-center col-span-full h-5';
             arcVisualRow.style.cssText = templateStyle;
@@ -848,7 +857,7 @@
             }
             workArea.appendChild(arcVisualRow);
 
-            // Riga del Dividendo
+            // Row 3 Left: Riga del Dividendo
             const dividendGridRow = document.createElement('div');
             dividendGridRow.className = 'grid gap-3 items-center col-span-full pb-3 border-b-2 border-slate-200';
             dividendGridRow.style.cssText = templateStyle;
@@ -878,17 +887,28 @@
             }
             leftSide.appendChild(workArea);
 
+            // Pannello Destro: Divisore & Quoziente
             const rightSide = document.createElement('div');
-            rightSide.className = 'flex flex-col bg-purple-50/60 border-l-4 border-slate-800 p-6 rounded-r-3xl min-w-[280px]';
+            rightSide.className = 'flex flex-col bg-purple-50/60 border-l-4 border-slate-800 p-5 rounded-r-3xl min-w-[280px] gap-3';
 
             const divisorContainer = document.createElement('div');
-            divisorContainer.className = 'pb-4 mb-4 border-b-4 border-slate-800';
-            
-            const divisorLabel = document.createElement('div');
-            divisorLabel.className = 'text-xs font-bold text-purple-700 uppercase tracking-wider mb-2';
-            divisorLabel.innerText = 'DIVISORE';
-            divisorContainer.appendChild(divisorLabel);
+            divisorContainer.className = 'flex flex-col gap-3 pb-4 border-b-4 border-slate-800';
 
+            // Row 1 Right: Intestazione Divisore
+            const divisorHeader = document.createElement('div');
+            divisorHeader.className = 'flex items-center border-b pb-1.5 min-h-[32px]';
+            const divisorLabel = document.createElement('div');
+            divisorLabel.className = 'text-xs font-bold text-purple-700 uppercase tracking-wider';
+            divisorLabel.innerText = 'DIVISORE';
+            divisorHeader.appendChild(divisorLabel);
+            divisorContainer.appendChild(divisorHeader);
+
+            // Row 2 Right: Distanziatore equivalente ad arcVisualRow
+            const divisorSpacer = document.createElement('div');
+            divisorSpacer.className = 'h-5';
+            divisorContainer.appendChild(divisorSpacer);
+
+            // Row 3 Right: Caselle del Divisore
             const divisorDigits = Math.max(2, Math.floor(maxDigits / 2));
             const divisorRow = document.createElement('div');
             divisorRow.className = 'flex gap-3';
@@ -898,7 +918,9 @@
             divisorContainer.appendChild(divisorRow);
             rightSide.appendChild(divisorContainer);
 
+            // Contenitore Quoziente
             const quotientContainer = document.createElement('div');
+            quotientContainer.className = 'flex flex-col gap-2 pt-1';
             
             const quotientLabel = document.createElement('div');
             quotientLabel.className = 'text-xs font-bold text-emerald-700 uppercase tracking-wider mb-2';
