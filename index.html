@@ -4,17 +4,17 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>LIM Calcoli in Colonna - Maestro Digitale</title>
-    <!-- Tailwind CSS embedded via CDN -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600;700&family=Inter:wght@400;600;800&display=swap');
 
+    <!-- Tailwind CSS (locale) - Scarica tailwind.js e inseriscilo nella stessa cartella del file index.html -->
+    <script src="tailwind.js"></script>
+
+    <style>
         html {
             font-size: 15px;
         }
 
         body {
-            font-family: 'Fredoka', 'Inter', sans-serif;
+            font-family: 'Fredoka', 'Inter', system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
             user-select: none;
             -webkit-user-select: none;
             touch-action: none;
@@ -299,6 +299,8 @@
         let activeCell = null;
         let isExternalCarrySelected = false;
 
+        let divisionArcs = [];
+
         let cellValues = {};
 
         let canvas, ctx;
@@ -475,6 +477,7 @@
             saveGridValuesToMemory();
             maxDigits = Math.max(2, Math.min(6, maxDigits + delta));
             document.getElementById('digitsDisplay').innerText = maxDigits;
+            divisionArcs = [];
             renderGrid();
         }
 
@@ -548,6 +551,29 @@
             }
             const count = digits.replace(/[^0-9]/g, '').length;
             return count > 0 ? count : 2;
+        }
+
+        function addDivisionArc(length) {
+            let nextStart = 0;
+            if (divisionArcs.length > 0) {
+                const lastArc = divisionArcs[divisionArcs.length - 1];
+                nextStart = lastArc.end + 1;
+            }
+
+            if (nextStart + length <= maxDigits) {
+                divisionArcs.push({
+                    start: nextStart,
+                    end: nextStart + length - 1
+                });
+                saveGridValuesToMemory();
+                renderGrid();
+            }
+        }
+
+        function clearDivisionArcs() {
+            divisionArcs = [];
+            saveGridValuesToMemory();
+            renderGrid();
         }
 
         function renderGrid() {
@@ -637,7 +663,6 @@
 
             let opSymbol = '-';
 
-            // Riga dei Prestiti: Nessuna casella nell'ultima colonna di destra (unità, ovvero i === cols - 2 senza decimali o indice corrispondente)
             for (let i = 0; i < cols; i++) {
                 if (i === cols - 1 || i === cols - 2) {
                     grid.appendChild(createEmptyCell());
@@ -776,11 +801,54 @@
 
             const templateStyle = `grid-template-columns: 24px repeat(${maxDigits}, minmax(64px, 80px));`;
 
-            const labelDiv = document.createElement('span');
-            labelDiv.className = 'col-span-full text-xs font-bold text-slate-400 uppercase tracking-wider mb-1';
-            labelDiv.innerText = 'DIVIDENDO:';
-            workArea.appendChild(labelDiv);
+            // Intestazione Dividendo e Pulsanti per l'Abbassamento delle cifre
+            const arcHeader = document.createElement('div');
+            arcHeader.className = 'col-span-full flex items-center justify-between border-b pb-2 mb-1';
 
+            const labelDiv = document.createElement('span');
+            labelDiv.className = 'text-xs font-bold text-slate-400 uppercase tracking-wider';
+            labelDiv.innerText = 'DIVIDENDO:';
+            arcHeader.appendChild(labelDiv);
+
+            const arcControls = document.createElement('div');
+            arcControls.className = 'flex items-center space-x-1.5';
+            arcControls.innerHTML = `
+                <span class="text-[11px] font-bold text-amber-700 mr-1">Abbasso di:</span>
+                <button onclick="addDivisionArc(1)" class="bg-amber-100 hover:bg-amber-200 text-amber-900 font-bold px-2 py-1 rounded-lg text-xs shadow-sm transition">⌒ 1 Cifra</button>
+                <button onclick="addDivisionArc(2)" class="bg-amber-100 hover:bg-amber-200 text-amber-900 font-bold px-2 py-1 rounded-lg text-xs shadow-sm transition">⌒ 2 Cifre</button>
+                <button onclick="addDivisionArc(3)" class="bg-amber-100 hover:bg-amber-200 text-amber-900 font-bold px-2 py-1 rounded-lg text-xs shadow-sm transition">⌒ 3 Cifre</button>
+                <button onclick="clearDivisionArcs()" class="bg-rose-100 hover:bg-rose-200 text-rose-700 font-bold px-2 py-1 rounded-lg text-xs shadow-sm transition">✕</button>
+            `;
+            arcHeader.appendChild(arcControls);
+            workArea.appendChild(arcHeader);
+
+            // Riga Visualizzazione Archetti
+            const arcVisualRow = document.createElement('div');
+            arcVisualRow.className = 'grid gap-3 items-center col-span-full h-5';
+            arcVisualRow.style.cssText = templateStyle;
+            arcVisualRow.appendChild(document.createElement('div'));
+
+            for (let c = 0; c < maxDigits; c++) {
+                const arcCell = document.createElement('div');
+                arcCell.className = 'w-full h-full flex items-end justify-center';
+
+                const matchedArc = divisionArcs.find(a => c >= a.start && c <= a.end);
+                if (matchedArc) {
+                    const isStart = (c === matchedArc.start);
+                    const isEnd = (c === matchedArc.end);
+
+                    let roundedClass = 'rounded-t-none';
+                    if (isStart && isEnd) roundedClass = 'rounded-t-full';
+                    else if (isStart) roundedClass = 'rounded-tl-full';
+                    else if (isEnd) roundedClass = 'rounded-tr-full';
+
+                    arcCell.innerHTML = `<div class="w-full h-3.5 border-t-4 border-amber-500 ${roundedClass}"></div>`;
+                }
+                arcVisualRow.appendChild(arcCell);
+            }
+            workArea.appendChild(arcVisualRow);
+
+            // Riga del Dividendo
             const dividendGridRow = document.createElement('div');
             dividendGridRow.className = 'grid gap-3 items-center col-span-full pb-3 border-b-2 border-slate-200';
             dividendGridRow.style.cssText = templateStyle;
@@ -792,6 +860,7 @@
             }
             workArea.appendChild(dividendGridRow);
 
+            // Righe di Calcolo della Divisione
             for (let r = 0; r < divRows; r++) {
                 const subRow = document.createElement('div');
                 subRow.className = 'grid gap-3 items-center';
@@ -803,7 +872,7 @@
                 subRow.appendChild(rowLabel);
 
                 for (let c = 0; c < maxDigits; c++) {
-                    subRow.appendChild(createCell('div-step', 'sub-row', `border border-slate-300 bg-white/80 text-slate-700 rounded-xl ${cellWidthClass} ${cellTextSize}`));
+                    subRow.appendChild(createCell('div-step', `div-sub-row-${r}`, `border border-slate-300 bg-white/80 text-slate-700 rounded-xl ${cellWidthClass} ${cellTextSize}`));
                 }
                 workArea.appendChild(subRow);
             }
@@ -824,7 +893,7 @@
             const divisorRow = document.createElement('div');
             divisorRow.className = 'flex gap-3';
             for (let i = 0; i < divisorDigits; i++) {
-                divisorRow.appendChild(createCell('operand-2', 'main-input', `border-2 border-purple-400 bg-purple-100 text-purple-900 rounded-2xl ${cellWidthClass} ${cellTextSize}`));
+                divisorRow.appendChild(createCell('operand-2', 'div-divisor-row', `border-2 border-purple-400 bg-purple-100 text-purple-900 rounded-2xl ${cellWidthClass} ${cellTextSize}`));
             }
             divisorContainer.appendChild(divisorRow);
             rightSide.appendChild(divisorContainer);
@@ -1045,20 +1114,62 @@
 
             // ---------------- DIVISIONE ----------------
             if (currentOp === 'div') {
-                const parent = activeCell.parentElement;
-                if (parent) {
-                    const siblings = Array.from(parent.querySelectorAll('.grid-cell'));
-                    const idx = siblings.indexOf(activeCell);
-                    if (idx !== -1 && idx < siblings.length - 1) {
-                        selectCell(siblings[idx + 1]);
+                const rowCells = Array.from(document.querySelectorAll(`.grid-cell[data-row-key="${rowKey}"]`));
+                const currentIndex = rowCells.indexOf(activeCell);
+
+                if (currentIndex === -1) return;
+
+                if (rowKey === 'main-input') {
+                    if (currentIndex < rowCells.length - 1) {
+                        selectCell(rowCells[currentIndex + 1]);
+                    } else {
+                        const divCells = Array.from(document.querySelectorAll('.grid-cell[data-row-key="div-divisor-row"]'));
+                        if (divCells.length > 0) selectCell(divCells[0]);
                     }
+                    return;
                 }
+
+                if (rowKey === 'div-divisor-row') {
+                    if (currentIndex < rowCells.length - 1) {
+                        selectCell(rowCells[currentIndex + 1]);
+                    } else {
+                        const qCells = Array.from(document.querySelectorAll('.grid-cell[data-row-key="quotient-row"]'));
+                        if (qCells.length > 0) selectCell(qCells[0]);
+                    }
+                    return;
+                }
+
+                if (rowKey === 'quotient-row') {
+                    if (currentIndex < rowCells.length - 1) {
+                        selectCell(rowCells[currentIndex + 1]);
+                    } else {
+                        const firstStepCells = Array.from(document.querySelectorAll('.grid-cell[data-row-key="div-sub-row-0"]'));
+                        if (firstStepCells.length > 0) selectCell(firstStepCells[0]);
+                    }
+                    return;
+                }
+
+                if (rowKey.startsWith('div-sub-row-')) {
+                    const r = parseInt(rowKey.replace('div-sub-row-', ''));
+                    if (currentIndex < rowCells.length - 1) {
+                        selectCell(rowCells[currentIndex + 1]);
+                    } else {
+                        const nextRowKey = `div-sub-row-${r + 1}`;
+                        const nextRowCells = Array.from(document.querySelectorAll(`.grid-cell[data-row-key="${nextRowKey}"]`));
+                        if (nextRowCells.length > 0) {
+                            selectCell(nextRowCells[0]);
+                        }
+                    }
+                    return;
+                }
+
                 return;
             }
         }
 
         function resetGridValues() {
             cellValues = {};
+            divisionArcs = [];
             document.querySelectorAll('.grid-cell').forEach(cell => {
                 cell.innerText = '';
             });
