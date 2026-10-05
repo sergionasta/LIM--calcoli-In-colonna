@@ -44,10 +44,10 @@
         /* Canvas overlay for touch/stylus drawing */
         #drawingCanvas {
             touch-action: none;
-            pointer-events: none; /* Default to pointer mode: clicks pass through to cells underneath */
+            pointer-events: none;
         }
         #drawingCanvas.drawing-active {
-            pointer-events: auto; /* Active when pen or eraser is selected */
+            pointer-events: auto;
             cursor: crosshair;
         }
 
@@ -126,7 +126,6 @@
                 <div class="bg-slate-50 p-3 rounded-2xl border border-slate-200 space-y-2.5">
                     <h3 class="font-bold text-slate-700 border-b pb-1 text-xs">Dimensioni & Opzioni</h3>
                     
-                    <!-- Digits / Columns -->
                     <div id="digitsControl">
                         <div class="flex justify-between items-center">
                             <span class="text-xs font-bold text-slate-500 uppercase">Cifre / Colonne</span>
@@ -139,7 +138,18 @@
                         </div>
                     </div>
 
-                    <!-- Division rows extra height control -->
+                    <div id="addendRowsControl" class="pt-1 border-t">
+                        <div class="flex justify-between items-center mb-1">
+                            <span class="text-xs font-bold text-slate-500 uppercase">Righe Addendi</span>
+                            <span id="addendRowsDisplay" class="font-extrabold text-blue-600 text-base">2</span>
+                        </div>
+                        <div class="flex items-center space-x-2">
+                            <button onclick="changeAddendRows(-1)" class="bg-white hover:bg-slate-200 border border-slate-300 w-8 h-8 rounded-xl font-bold text-lg shadow-sm">-</button>
+                            <div class="flex-1 text-center font-semibold text-slate-600 text-xs">Numero addendi</div>
+                            <button onclick="changeAddendRows(1)" class="bg-white hover:bg-slate-200 border border-slate-300 w-8 h-8 rounded-xl font-bold text-lg shadow-sm">+</button>
+                        </div>
+                    </div>
+
                     <div id="divisionRowsControl" class="hidden pt-1 border-t">
                         <div class="flex justify-between items-center mb-1">
                             <span class="text-xs font-bold text-slate-500 uppercase">Righe di Calcolo (Divisione)</span>
@@ -152,7 +162,6 @@
                         </div>
                     </div>
 
-                    <!-- Decimals Toggle -->
                     <div class="flex items-center justify-between pt-1 border-t">
                         <span class="text-xs font-bold text-slate-600 uppercase">Numeri con Virgola</span>
                         <label class="relative inline-flex items-center cursor-pointer">
@@ -166,7 +175,6 @@
                 <div class="bg-slate-50 p-3 rounded-2xl border border-slate-200 space-y-2.5">
                     <h3 class="font-bold text-slate-700 border-b pb-1 text-xs">Pennelli e Inchiostro LIM</h3>
                     
-                    <!-- Tool buttons including Mouse Pointer -->
                     <div class="grid grid-cols-3 gap-2">
                         <button id="tool-pointer" onclick="setTool('pointer')" class="tool-btn bg-slate-100 text-slate-700 font-bold py-2 rounded-xl text-xs flex flex-col items-center justify-center">
                             <svg class="w-4 h-4 mb-0.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 15l-2 5L9 9l11 4-5 2zm0 0l5 5M7.188 2.239l.777 2.897M5.136 7.965l-2.898-.777M13.95 4.05l-2.122 2.122m-5.657 5.656l-2.12 2.122"/></svg>
@@ -182,7 +190,6 @@
                         </button>
                     </div>
 
-                    <!-- Color Palette -->
                     <div>
                         <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Colore Inchiostro</label>
                         <div class="flex justify-between items-center bg-white p-2 rounded-xl border border-slate-200">
@@ -194,14 +201,12 @@
                         </div>
                     </div>
 
-                    <!-- Line Width Slider -->
                     <div>
                         <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Spessore Tratto</label>
                         <input type="range" id="lineWidth" min="2" max="22" value="2" onchange="setLineWidth(this.value)" class="w-full accent-blue-600">
                     </div>
                 </div>
 
-                <!-- Exercise Generator -->
                 <div class="bg-amber-50 p-3 rounded-2xl border border-amber-200">
                     <button onclick="generateRandomOperation()" class="w-full bg-amber-500 hover:bg-amber-600 text-slate-900 font-bold py-2.5 rounded-xl shadow transition flex items-center justify-center space-x-2 text-sm">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"/><path stroke-linecap="round" stroke-linejoin="round" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
@@ -209,7 +214,6 @@
                     </button>
                 </div>
 
-                <!-- Solve and Verify Controls -->
                 <div class="space-y-2 pt-0.5">
                     <button onclick="checkResult()" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2.5 rounded-xl shadow transition flex items-center justify-center space-x-2 text-sm">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
@@ -226,19 +230,23 @@
         <!-- Main Interactive Blackboard Workspace -->
         <main class="flex-1 relative bg-slate-200 overflow-auto flex flex-col items-center justify-end p-4 md:p-6">
             
-            <!-- Transparent Freehand Canvas Overlaid across entire workspace with z-index above grid -->
             <canvas id="drawingCanvas" class="absolute inset-0 z-30"></canvas>
 
             <!-- Mathematical Grid Box -->
             <div id="gridContainer" class="relative z-20 bg-white p-6 md:p-8 rounded-3xl shadow-2xl border-4 border-slate-300 max-w-full overflow-x-auto mb-2 min-w-[360px]">
                 <!-- Dynamic Content Injected Here by JS -->
             </div>
+            
+            <!-- External carry pad for multiplication (present ONLY during multiplication) -->
+            <div id="externalCarryContainer" class="hidden absolute bottom-4 right-4 z-20 bg-white p-3 rounded-2xl shadow-lg border-2 border-amber-300 flex items-center space-x-2">
+                <span class="text-xs font-bold text-amber-700 uppercase">Riporti:</span>
+                <input type="text" id="externalCarryInput" maxlength="5" class="w-20 text-center font-bold text-lg bg-amber-50 border border-amber-300 rounded-xl py-1 px-2 focus:outline-none focus:ring-2 focus:ring-amber-500">
+            </div>
         </main>
 
         <!-- Right Sidebar Panel - Touch keypad positioned at bottom -->
         <aside id="keypadPanel" class="w-72 md:w-80 bg-white border-l border-slate-200 p-4 flex flex-col justify-end space-y-3 shadow-2xl z-30 flex-shrink-0">
             <div class="mt-auto space-y-3">
-                <!-- Solution Floating Banner relocated to top of right sidebar column -->
                 <div id="solutionBox" class="hidden bg-emerald-500 text-white p-3 rounded-2xl shadow-md border-2 border-white flex items-center justify-between">
                     <div>
                         <span class="text-[10px] font-bold uppercase tracking-wider block opacity-90">Soluzione Corretta</span>
@@ -255,7 +263,6 @@
                     
                     <p class="text-xs text-slate-500 mb-3">Tocca una casella sulla lavagna per inserire i numeri con i tasti giganti.</p>
 
-                    <!-- Touch Numpad Grid -->
                     <div class="grid grid-cols-3 gap-2">
                         <button onclick="typeDigit('7')" class="keypad-btn bg-slate-100 hover:bg-blue-600 hover:text-white font-extrabold text-2xl py-3.5 rounded-2xl shadow-sm transition active:scale-95">7</button>
                         <button onclick="typeDigit('8')" class="keypad-btn bg-slate-100 hover:bg-blue-600 hover:text-white font-extrabold text-2xl py-3.5 rounded-2xl shadow-sm transition active:scale-95">8</button>
@@ -278,51 +285,44 @@
                 </div>
             </div>
 
-            <!-- Feedback Alert Message -->
             <div id="feedbackBox" class="hidden p-3 rounded-2xl font-bold text-center text-xs shadow-md transition-all"></div>
         </aside>
     </div>
 
     <!-- JavaScript Application Logic -->
     <script>
-        // State Management
-        let currentOp = 'add'; // 'add', 'sub', 'mul', 'div'
+        let currentOp = 'add';
         let maxDigits = 3;
-        let divRows = 8; // Number of calculation rows for division
+        let addendRowsCount = 2;
+        let divRows = 8;
         let showDecimals = false;
         let activeCell = null;
-        let exerciseExtraCol = false; // Flag to track if an extra left column was added for the current generated exercise
+        let exerciseExtraCol = false;
 
-        // Persistent data store mapping cell type and absolute indices to prevent data loss on dimension change
         let cellValues = {};
 
-        // Canvas Drawing Engine State - Defaulting to pointer tool
         let canvas, ctx;
         let isDrawing = false;
-        let currentTool = 'pointer'; // 'pointer', 'pen', 'eraser'
+        let currentTool = 'pointer';
         let currentColor = '#1e293b';
-        let currentLineWidth = 2; // Default minimum loaded thickness
+        let currentLineWidth = 2;
 
-        // Initialization
         window.onload = () => {
             initCanvas();
             renderGrid();
             window.addEventListener('resize', resizeCanvas);
         };
 
-        // --- CANVAS ENGINE FOR LIM WRITING ---
         function initCanvas() {
             canvas = document.getElementById('drawingCanvas');
             ctx = canvas.getContext('2d');
             resizeCanvas();
 
-            // Mouse Event Listeners
             canvas.addEventListener('mousedown', startDrawing);
             canvas.addEventListener('mousemove', draw);
             canvas.addEventListener('mouseup', stopDrawing);
             canvas.addEventListener('mouseleave', stopDrawing);
 
-            // Touch Event Listeners for Touchscreens & LIM
             canvas.addEventListener('touchstart', handleTouchStart, { passive: false });
             canvas.addEventListener('touchmove', handleTouchMove, { passive: false });
             canvas.addEventListener('touchend', stopDrawing);
@@ -433,7 +433,6 @@
             ctx.clearRect(0, 0, canvas.width, canvas.height);
         }
 
-        // --- GRID RENDERING ENGINE & PERSISTENCE ---
         function saveGridValuesToMemory() {
             cellValues = {};
             document.querySelectorAll('.grid-cell').forEach((cell, idx) => {
@@ -456,10 +455,17 @@
             document.getElementById(`op-${op}`).classList.add('bg-blue-600', 'text-white');
 
             const divRowsCtrl = document.getElementById('divisionRowsControl');
+            const addendRowsCtrl = document.getElementById('addendRowsControl');
+
             if (op === 'div') {
                 divRowsCtrl.classList.remove('hidden');
+                addendRowsCtrl.classList.add('hidden');
+            } else if (op === 'add') {
+                divRowsCtrl.classList.add('hidden');
+                addendRowsCtrl.classList.remove('hidden');
             } else {
                 divRowsCtrl.classList.add('hidden');
+                addendRowsCtrl.classList.add('hidden');
             }
 
             renderGrid();
@@ -469,7 +475,14 @@
             saveGridValuesToMemory();
             maxDigits = Math.max(2, Math.min(6, maxDigits + delta));
             document.getElementById('digitsDisplay').innerText = maxDigits;
-            exerciseExtraCol = false; // Reset extra col when manually changing digits
+            exerciseExtraCol = false;
+            renderGrid();
+        }
+
+        function changeAddendRows(delta) {
+            saveGridValuesToMemory();
+            addendRowsCount = Math.max(2, Math.min(5, addendRowsCount + delta));
+            document.getElementById('addendRowsDisplay').innerText = addendRowsCount;
             renderGrid();
         }
 
@@ -493,6 +506,17 @@
             setTimeout(resizeCanvas, 350);
         }
 
+        function updateExternalCarryVisibility() {
+            const extCarry = document.getElementById('externalCarryContainer');
+            if (extCarry) {
+                if (currentOp === 'mul') {
+                    extCarry.classList.remove('hidden');
+                } else {
+                    extCarry.classList.add('hidden');
+                }
+            }
+        }
+
         function renderGrid() {
             const container = document.getElementById('gridContainer');
             container.innerHTML = '';
@@ -501,7 +525,11 @@
             document.getElementById('solutionBox').classList.add('hidden');
             document.getElementById('feedbackBox').classList.add('hidden');
 
-            if (currentOp === 'div') {
+            updateExternalCarryVisibility();
+
+            if (currentOp === 'add') {
+                renderAdditionGrid(container);
+            } else if (currentOp === 'div') {
                 renderLargeDivisionGrid(container);
             } else if (currentOp === 'mul') {
                 renderMultiplicationGrid(container);
@@ -521,28 +549,68 @@
             });
         }
 
-        // Standard Grid (+, -)
-        function renderStandardGrid(container) {
-            // If it's addition and exerciseExtraCol is true, add +1 column width on the left
-            const effectiveExtra = (currentOp === 'add' && exerciseExtraCol) ? 1 : 0;
+        function renderAdditionGrid(container) {
+            const effectiveExtra = exerciseExtraCol ? 1 : 0;
             const cols = maxDigits + (showDecimals ? 2 : 0) + 1 + effectiveExtra;
             const grid = document.createElement('div');
             grid.className = `grid gap-3.5 items-center justify-center font-bold`;
             grid.style.gridTemplateColumns = `repeat(${cols}, minmax(75px, 105px))`;
 
-            let opSymbol = '+';
-            if (currentOp === 'sub') opSymbol = '-';
+            for (let i = 0; i < cols; i++) {
+                if (i === cols - 1 || i === cols - 2 - (showDecimals ? 2 : 0)) {
+                    grid.appendChild(createEmptyCell());
+                } else {
+                    grid.appendChild(createCell('carry', 'add-carry-row', 'text-rose-600 text-xl border-2 border-dashed border-rose-300 bg-rose-50/70 rounded-xl h-14 md:h-16'));
+                }
+            }
 
-            // Carry Row
+            for (let r = 0; r < addendRowsCount; r++) {
+                const isLastAddend = (r === addendRowsCount - 1);
+                for (let i = 0; i < cols; i++) {
+                    if (i === cols - 1) {
+                        const symbolBox = document.createElement('div');
+                        symbolBox.className = 'text-center font-extrabold text-blue-600 text-4xl md:text-5xl';
+                        symbolBox.innerText = isLastAddend ? '=' : '+';
+                        grid.appendChild(symbolBox);
+                    } else {
+                        const cell = createCell(`operand-${r + 1}`, `addend-row-${r}`, 'border-2 border-slate-300 bg-slate-50 text-slate-800 rounded-2xl h-20 md:h-24 text-4xl font-bold');
+                        grid.appendChild(cell);
+                    }
+                }
+            }
+
+            const line = document.createElement('div');
+            line.className = 'col-span-full border-b-4 border-slate-800 my-2 rounded-full';
+            grid.appendChild(line);
+
             for (let i = 0; i < cols; i++) {
                 if (i === cols - 1) {
                     grid.appendChild(createEmptyCell());
                 } else {
-                    grid.appendChild(createCell('carry', 'carry-row', 'text-rose-600 text-xl border-2 border-dashed border-rose-300 bg-rose-50/70 rounded-xl h-14 md:h-16'));
+                    grid.appendChild(createCell('result', 'add-result-row', 'border-2 border-blue-500 bg-blue-50 text-blue-900 font-extrabold rounded-2xl h-20 md:h-24 text-4xl'));
                 }
             }
 
-            // First Operand Row
+            container.appendChild(grid);
+        }
+
+        function renderStandardGrid(container) {
+            const effectiveExtra = (currentOp === 'sub' && exerciseExtraCol) ? 1 : 0;
+            const cols = maxDigits + (showDecimals ? 2 : 0) + 1 + effectiveExtra;
+            const grid = document.createElement('div');
+            grid.className = `grid gap-3.5 items-center justify-center font-bold`;
+            grid.style.gridTemplateColumns = `repeat(${cols}, minmax(75px, 105px))`;
+
+            let opSymbol = '-';
+
+            for (let i = 0; i < cols; i++) {
+                if (i === cols - 1 || (currentOp === 'sub' && i === cols - 2)) {
+                    grid.appendChild(createEmptyCell());
+                } else {
+                    grid.appendChild(createCell('carry', 'sub-carry-row', 'text-rose-600 text-xl border-2 border-dashed border-rose-300 bg-rose-50/70 rounded-xl h-14 md:h-16'));
+                }
+            }
+
             for (let i = 0; i < cols; i++) {
                 if (i === cols - 1) {
                     const symbolBox = document.createElement('div');
@@ -550,11 +618,10 @@
                     symbolBox.innerText = opSymbol;
                     grid.appendChild(symbolBox);
                 } else {
-                    grid.appendChild(createCell('operand-1', 'main-input', 'border-2 border-slate-300 bg-slate-50 text-slate-800 rounded-2xl h-20 md:h-24 text-4xl font-bold'));
+                    grid.appendChild(createCell('operand-1', 'sub-minuend-row', 'border-2 border-slate-300 bg-slate-50 text-slate-800 rounded-2xl h-20 md:h-24 text-4xl font-bold'));
                 }
             }
 
-            // Second Operand Row
             for (let i = 0; i < cols; i++) {
                 if (i === cols - 1) {
                     const symbolBox = document.createElement('div');
@@ -562,46 +629,43 @@
                     symbolBox.innerText = '=';
                     grid.appendChild(symbolBox);
                 } else {
-                    grid.appendChild(createCell('operand-2', 'main-input', 'border-2 border-slate-300 bg-slate-50 text-slate-800 rounded-2xl h-20 md:h-24 text-4xl font-bold'));
+                    const cell = createCell('operand-2', 'sub-subtrahend-row', 'border-2 border-slate-300 bg-slate-50 text-slate-800 rounded-2xl h-20 md:h-24 text-4xl font-bold');
+                    grid.appendChild(cell);
                 }
             }
 
-            // Separator Line
             const line = document.createElement('div');
             line.className = 'col-span-full border-b-4 border-slate-800 my-2 rounded-full';
             grid.appendChild(line);
 
-            // Result Row
             for (let i = 0; i < cols; i++) {
                 if (i === cols - 1) {
                     grid.appendChild(createEmptyCell());
                 } else {
-                    grid.appendChild(createCell('result', 'result-row', 'border-2 border-blue-500 bg-blue-50 text-blue-900 font-extrabold rounded-2xl h-20 md:h-24 text-4xl'));
+                    grid.appendChild(createCell('result', 'sub-result-row', 'border-2 border-blue-500 bg-blue-50 text-blue-900 font-extrabold rounded-2xl h-20 md:h-24 text-4xl'));
                 }
             }
 
             container.appendChild(grid);
         }
 
-        // Expanded Multiplication Grid
         function renderMultiplicationGrid(container) {
-            // If exerciseExtraCol is true, add +1 column width on the left for multiplication
             const effectiveExtra = exerciseExtraCol ? 1 : 0;
             const cols = maxDigits + (showDecimals ? 2 : 0) + 2 + effectiveExtra;
             const grid = document.createElement('div');
             grid.className = `grid gap-3.5 items-center justify-center font-bold`;
             grid.style.gridTemplateColumns = `repeat(${cols}, minmax(75px, 105px))`;
 
-            // Carry Row
+            // Riga 1: Riporti
             for (let i = 0; i < cols; i++) {
-                if (i === 0 || i === cols - 1) {
+                if (i === 0 || i === cols - 1 || i === cols - 2) {
                     grid.appendChild(createEmptyCell());
                 } else {
-                    grid.appendChild(createCell('carry', 'carry-row', 'text-rose-600 text-xl border-2 border-dashed border-rose-300 bg-rose-50/70 rounded-xl h-14 md:h-16'));
+                    grid.appendChild(createCell('carry', 'mul-carry-row', 'text-rose-600 text-xl border-2 border-dashed border-rose-300 bg-rose-50/70 rounded-xl h-14 md:h-16'));
                 }
             }
 
-            // First Factor Row
+            // Riga 2: Primo Fattore
             for (let i = 0; i < cols; i++) {
                 if (i === cols - 1) {
                     const symbolBox = document.createElement('div');
@@ -611,11 +675,11 @@
                 } else if (i === 0) {
                     grid.appendChild(createEmptyCell());
                 } else {
-                    grid.appendChild(createCell('operand-1', 'main-input', 'border-2 border-slate-300 bg-slate-50 text-slate-800 rounded-2xl h-20 md:h-24 text-4xl font-bold'));
+                    grid.appendChild(createCell('operand-1', 'mul-factor-1-row', 'border-2 border-slate-300 bg-slate-50 text-slate-800 rounded-2xl h-20 md:h-24 text-4xl font-bold'));
                 }
             }
 
-            // Second Factor Row
+            // Riga 3: Secondo Fattore
             for (let i = 0; i < cols; i++) {
                 if (i === cols - 1) {
                     const symbolBox = document.createElement('div');
@@ -625,17 +689,18 @@
                 } else if (i === 0) {
                     grid.appendChild(createEmptyCell());
                 } else {
-                    grid.appendChild(createCell('operand-2', 'main-input', 'border-2 border-slate-300 bg-slate-50 text-slate-800 rounded-2xl h-20 md:h-24 text-4xl font-bold'));
+                    const cell = createCell('operand-2', 'mul-factor-2-row', 'border-2 border-slate-300 bg-slate-50 text-slate-800 rounded-2xl h-20 md:h-24 text-4xl font-bold');
+                    grid.appendChild(cell);
                 }
             }
 
-            // Separator Line
             const line1 = document.createElement('div');
             line1.className = 'col-span-full border-b-4 border-slate-800 my-2 rounded-full';
             grid.appendChild(line1);
 
-            // Partial Products Rows
             const partialRows = maxDigits > 2 ? 2 : 1;
+            
+            // Riga 4 e 5: Prodotti Parziali (Addendi)
             for (let r = 0; r < partialRows; r++) {
                 for (let i = 0; i < cols; i++) {
                     if (i === cols - 1) {
@@ -646,7 +711,7 @@
                     } else if (i === 0) {
                         grid.appendChild(createEmptyCell());
                     } else {
-                        grid.appendChild(createCell('partial-prod', 'partial-row', 'border-2 border-amber-300 bg-amber-50/60 text-amber-900 rounded-2xl h-20 md:h-24 text-4xl font-bold'));
+                        grid.appendChild(createCell('partial-prod', `mul-partial-row-${r}`, 'border-2 border-amber-300 bg-amber-50/60 text-amber-900 rounded-2xl h-20 md:h-24 text-4xl font-bold'));
                     }
                 }
             }
@@ -657,23 +722,22 @@
                 grid.appendChild(line2);
             }
 
-            // Result Row
+            // Riga 6: Risultato
             for (let i = 0; i < cols; i++) {
                 if (i === cols - 1) {
                     grid.appendChild(createEmptyCell());
-                } else if (i === 0) {
-                    grid.appendChild(createEmptyCell());
                 } else {
-                    grid.appendChild(createCell('result', 'result-row', 'border-2 border-blue-500 bg-blue-50 text-blue-900 font-extrabold rounded-2xl h-20 md:h-24 text-4xl'));
+                    const cell = createCell('result', 'mul-result-row', 'border-2 border-blue-500 bg-blue-50 text-blue-900 font-extrabold rounded-2xl h-20 md:h-24 text-4xl');
+                    grid.appendChild(cell);
                 }
             }
 
             container.appendChild(grid);
         }
 
-        // Expanded Large Division Workspace Layout
         function renderLargeDivisionGrid(container) {
-            const divisorDigits = Math.max(2, Math.floor(maxDigits / 2));
+            const cellWidthClass = 'w-16 h-16 md:w-20 md:h-20';
+            const cellTextSize = 'text-3xl font-bold';
             
             const divWrapper = document.createElement('div');
             divWrapper.className = 'flex flex-col md:flex-row gap-8 md:gap-12 items-start justify-center min-w-[700px] max-w-full';
@@ -681,36 +745,39 @@
             const leftSide = document.createElement('div');
             leftSide.className = 'flex flex-col gap-4 flex-1';
 
-            const dividendHeader = document.createElement('div');
-            dividendHeader.className = 'flex items-center gap-3 pb-3 border-b-2 border-slate-200';
-            
-            const labelDiv = document.createElement('span');
-            labelDiv.className = 'text-xs font-bold text-slate-400 uppercase tracking-wider mr-2';
-            labelDiv.innerText = 'DIVIDENDO:';
-            dividendHeader.appendChild(labelDiv);
-
-            const dividendRow = document.createElement('div');
-            dividendRow.className = 'flex gap-3';
-            for (let i = 0; i < maxDigits; i++) {
-                dividendRow.appendChild(createCell('operand-1', 'main-input', 'border-2 border-slate-300 bg-slate-50 text-slate-800 rounded-2xl w-20 h-20 md:w-24 md:h-24 text-4xl font-bold'));
-            }
-            dividendHeader.appendChild(dividendRow);
-            leftSide.appendChild(dividendHeader);
-
             const workArea = document.createElement('div');
             workArea.className = 'division-grid-paper border-2 border-slate-200 rounded-3xl p-5 flex flex-col gap-3 min-h-[400px] shadow-inner';
 
+            const templateStyle = `grid-template-columns: 24px repeat(${maxDigits}, minmax(64px, 80px));`;
+
+            const labelDiv = document.createElement('span');
+            labelDiv.className = 'col-span-full text-xs font-bold text-slate-400 uppercase tracking-wider mb-1';
+            labelDiv.innerText = 'DIVIDENDO:';
+            workArea.appendChild(labelDiv);
+
+            const dividendGridRow = document.createElement('div');
+            dividendGridRow.className = 'grid gap-3 items-center col-span-full pb-3 border-b-2 border-slate-200';
+            dividendGridRow.style.cssText = templateStyle;
+
+            dividendGridRow.appendChild(document.createElement('div'));
+
+            for (let i = 0; i < maxDigits; i++) {
+                dividendGridRow.appendChild(createCell('operand-1', 'main-input', `border-2 border-slate-300 bg-slate-50 text-slate-800 rounded-2xl ${cellWidthClass} ${cellTextSize}`));
+            }
+            workArea.appendChild(dividendGridRow);
+
             for (let r = 0; r < divRows; r++) {
                 const subRow = document.createElement('div');
-                subRow.className = 'flex gap-3 items-center';
+                subRow.className = 'grid gap-3 items-center';
+                subRow.style.cssText = templateStyle;
 
-                const rowLabel = document.createElement('span');
-                rowLabel.className = 'w-6 text-center font-bold text-slate-400 text-base';
+                const rowLabel = document.createElement('div');
+                rowLabel.className = 'text-center font-bold text-slate-400 text-2xl flex-shrink-0';
                 rowLabel.innerText = (r % 2 === 0 && r > 0) ? '-' : (r % 2 === 1 ? '=' : '');
                 subRow.appendChild(rowLabel);
 
                 for (let c = 0; c < maxDigits; c++) {
-                    subRow.appendChild(createCell('div-step', 'sub-row', 'border border-slate-300 bg-white/80 text-slate-700 rounded-xl w-16 h-16 md:w-20 md:h-20 text-3xl font-bold'));
+                    subRow.appendChild(createCell('div-step', 'sub-row', `border border-slate-300 bg-white/80 text-slate-700 rounded-xl ${cellWidthClass} ${cellTextSize}`));
                 }
                 workArea.appendChild(subRow);
             }
@@ -727,10 +794,11 @@
             divisorLabel.innerText = 'DIVISORE';
             divisorContainer.appendChild(divisorLabel);
 
+            const divisorDigits = Math.max(2, Math.floor(maxDigits / 2));
             const divisorRow = document.createElement('div');
             divisorRow.className = 'flex gap-3';
             for (let i = 0; i < divisorDigits; i++) {
-                divisorRow.appendChild(createCell('operand-2', 'main-input', 'border-2 border-purple-400 bg-purple-100 text-purple-900 rounded-2xl w-20 h-20 md:w-24 md:h-24 text-4xl font-bold'));
+                divisorRow.appendChild(createCell('operand-2', 'main-input', `border-2 border-purple-400 bg-purple-100 text-purple-900 rounded-2xl ${cellWidthClass} ${cellTextSize}`));
             }
             divisorContainer.appendChild(divisorRow);
             rightSide.appendChild(divisorContainer);
@@ -743,9 +811,9 @@
             quotientContainer.appendChild(quotientLabel);
 
             const quotientRow = document.createElement('div');
-            quotientRow.className = 'flex gap-3 flex-wrap max-w-[320px]';
+            quotientRow.className = 'flex gap-3 flex-nowrap overflow-x-auto pb-2';
             for (let i = 0; i < maxDigits + 1; i++) {
-                quotientRow.appendChild(createCell('quotient', 'quotient-row', 'border-2 border-emerald-500 bg-emerald-100 text-emerald-900 rounded-2xl w-20 h-20 md:w-24 md:h-24 text-4xl font-extrabold'));
+                quotientRow.appendChild(createCell('quotient', 'quotient-row', `border-2 border-emerald-500 bg-emerald-100 text-emerald-900 rounded-2xl flex-shrink-0 ${cellWidthClass} text-4xl font-extrabold`));
             }
             quotientContainer.appendChild(quotientRow);
             rightSide.appendChild(quotientContainer);
@@ -783,7 +851,7 @@
             activeCell = cell;
             activeCell.classList.add('selected');
 
-            const typeName = cell.dataset.type.toUpperCase();
+            const typeName = cell.dataset.name ? `${cell.dataset.name.toUpperCase()} (${cell.dataset.type.toUpperCase()})` : cell.dataset.type.toUpperCase();
             document.getElementById('activeCellLabel').innerText = `Casella: ${typeName}`;
         }
 
@@ -792,26 +860,170 @@
 
             if (val === 'DEL') {
                 activeCell.innerText = '';
-            } else {
-                activeCell.innerText = val;
-                
-                const rowKey = activeCell.dataset.rowKey;
-                const parent = activeCell.parentElement;
-                
-                if (parent) {
-                    const siblings = Array.from(parent.querySelectorAll('.grid-cell'));
-                    const currentIndex = siblings.indexOf(activeCell);
+                return;
+            }
 
-                    if (rowKey === 'main-input') {
-                        if (currentIndex !== -1 && currentIndex < siblings.length - 1) {
-                            selectCell(siblings[currentIndex + 1]);
-                        }
+            activeCell.innerText = val;
+
+            const rowKey = activeCell.dataset.rowKey;
+            if (!rowKey) return;
+
+            // REGOLA GENERALE: Nelle caselle dei riporti e dei prestiti NON avvengono spostamenti automatici
+            if (rowKey.includes('carry')) {
+                return;
+            }
+
+            // ---------------- MOLTIPLICAZIONE ----------------
+            if (currentOp === 'mul') {
+                const rowCells = Array.from(document.querySelectorAll(`.grid-cell[data-row-key="${rowKey}"]`));
+                const currentIndex = rowCells.indexOf(activeCell);
+
+                if (currentIndex === -1) return;
+
+                // 1. Primo Fattore (Riga 2) -> da sinistra a destra, poi passa in basso a Fattore 2
+                if (rowKey === 'mul-factor-1-row') {
+                    if (currentIndex < rowCells.length - 1) {
+                        selectCell(rowCells[currentIndex + 1]);
                     } else {
-                        if (currentIndex > 0) {
-                            selectCell(siblings[currentIndex - 1]);
+                        const f2Cells = Array.from(document.querySelectorAll('.grid-cell[data-row-key="mul-factor-2-row"]'));
+                        if (f2Cells.length > 0) selectCell(f2Cells[0]);
+                    }
+                    return;
+                }
+
+                // 2. Secondo Fattore (Riga 3) -> da sinistra a destra, poi passa in basso al 1° Prodotto Parziale (da destra)
+                if (rowKey === 'mul-factor-2-row') {
+                    if (currentIndex < rowCells.length - 1) {
+                        selectCell(rowCells[currentIndex + 1]);
+                    } else {
+                        const p0Cells = Array.from(document.querySelectorAll('.grid-cell[data-row-key="mul-partial-row-0"]'));
+                        if (p0Cells.length > 0) selectCell(p0Cells[p0Cells.length - 1]);
+                    }
+                    return;
+                }
+
+                // 3. Primo Prodotto Parziale (Riga 4) -> da destra a sinistra. Poi in basso a Riga 5 o Riga 6
+                if (rowKey === 'mul-partial-row-0') {
+                    if (currentIndex > 0) {
+                        selectCell(rowCells[currentIndex - 1]);
+                    } else {
+                        const p1Cells = Array.from(document.querySelectorAll('.grid-cell[data-row-key="mul-partial-row-1"]'));
+                        if (p1Cells.length > 0) {
+                            selectCell(p1Cells[p1Cells.length - 1]);
+                        } else {
+                            const resCells = Array.from(document.querySelectorAll('.grid-cell[data-row-key="mul-result-row"]'));
+                            if (resCells.length > 0) selectCell(resCells[resCells.length - 1]);
                         }
                     }
+                    return;
                 }
+
+                // 4. Secondo Prodotto Parziale (Riga 5) -> da destra a sinistra. Poi in basso alla Riga 6 (Risultato)
+                if (rowKey === 'mul-partial-row-1') {
+                    if (currentIndex > 0) {
+                        selectCell(rowCells[currentIndex - 1]);
+                    } else {
+                        const resCells = Array.from(document.querySelectorAll('.grid-cell[data-row-key="mul-result-row"]'));
+                        if (resCells.length > 0) selectCell(resCells[resCells.length - 1]);
+                    }
+                    return;
+                }
+
+                // 5. Risultato (Riga 6) -> da destra a sinistra. Rimane sulla riga del risultato
+                if (rowKey === 'mul-result-row') {
+                    if (currentIndex > 0) {
+                        selectCell(rowCells[currentIndex - 1]);
+                    }
+                    return;
+                }
+
+                return;
+            }
+
+            // ---------------- ADDIZIONE ----------------
+            if (currentOp === 'add') {
+                const rowCells = Array.from(document.querySelectorAll(`.grid-cell[data-row-key="${rowKey}"]`));
+                const currentIndex = rowCells.indexOf(activeCell);
+
+                if (currentIndex === -1) return;
+
+                // Addendi: da sinistra verso destra. Al termine di una riga, passa in basso all'addendo successivo o al Risultato (da destra)
+                if (rowKey.startsWith('addend-row-')) {
+                    const rNum = parseInt(rowKey.replace('addend-row-', ''));
+                    if (currentIndex < rowCells.length - 1) {
+                        selectCell(rowCells[currentIndex + 1]);
+                    } else if (rNum < addendRowsCount - 1) {
+                        const nextAddendCells = Array.from(document.querySelectorAll(`.grid-cell[data-row-key="addend-row-${rNum + 1}"]`));
+                        if (nextAddendCells.length > 0) selectCell(nextAddendCells[0]);
+                    } else {
+                        const resCells = Array.from(document.querySelectorAll('.grid-cell[data-row-key="add-result-row"]'));
+                        if (resCells.length > 0) selectCell(resCells[resCells.length - 1]);
+                    }
+                    return;
+                }
+
+                // Risultato Addizione: da destra a sinistra. Una volta arrivati a sinistra, rimane sul risultato
+                if (rowKey === 'add-result-row') {
+                    if (currentIndex > 0) {
+                        selectCell(rowCells[currentIndex - 1]);
+                    }
+                    return;
+                }
+
+                return;
+            }
+
+            // ---------------- SOTTRAZIONE ----------------
+            if (currentOp === 'sub') {
+                const rowCells = Array.from(document.querySelectorAll(`.grid-cell[data-row-key="${rowKey}"]`));
+                const currentIndex = rowCells.indexOf(activeCell);
+
+                if (currentIndex === -1) return;
+
+                // Minuendo: da sinistra a destra, poi passa in basso al Sottrando
+                if (rowKey === 'sub-minuend-row') {
+                    if (currentIndex < rowCells.length - 1) {
+                        selectCell(rowCells[currentIndex + 1]);
+                    } else {
+                        const subtrCells = Array.from(document.querySelectorAll('.grid-cell[data-row-key="sub-subtrahend-row"]'));
+                        if (subtrCells.length > 0) selectCell(subtrCells[0]);
+                    }
+                    return;
+                }
+
+                // Sottrando: da sinistra a destra, poi passa in basso al Risultato (da destra)
+                if (rowKey === 'sub-subtrahend-row') {
+                    if (currentIndex < rowCells.length - 1) {
+                        selectCell(rowCells[currentIndex + 1]);
+                    } else {
+                        const resCells = Array.from(document.querySelectorAll('.grid-cell[data-row-key="sub-result-row"]'));
+                        if (resCells.length > 0) selectCell(resCells[resCells.length - 1]);
+                    }
+                    return;
+                }
+
+                // Risultato Sottrazione: da destra a sinistra. Una volta completato a sinistra, rimane sul risultato
+                if (rowKey === 'sub-result-row') {
+                    if (currentIndex > 0) {
+                        selectCell(rowCells[currentIndex - 1]);
+                    }
+                    return;
+                }
+
+                return;
+            }
+
+            // ---------------- DIVISIONE ----------------
+            if (currentOp === 'div') {
+                const parent = activeCell.parentElement;
+                if (parent) {
+                    const siblings = Array.from(parent.querySelectorAll('.grid-cell'));
+                    const idx = siblings.indexOf(activeCell);
+                    if (idx !== -1 && idx < siblings.length - 1) {
+                        selectCell(siblings[idx + 1]);
+                    }
+                }
+                return;
             }
         }
 
@@ -820,6 +1032,7 @@
             document.querySelectorAll('.grid-cell').forEach(cell => {
                 cell.innerText = '';
             });
+            document.getElementById('externalCarryInput').value = '';
             document.getElementById('feedbackBox').classList.add('hidden');
             document.getElementById('solutionBox').classList.add('hidden');
         }
@@ -828,8 +1041,7 @@
             resetGridValues();
             clearCanvas();
 
-            // Enable an extra empty column on the left exclusively for addition and multiplication when generating exercises
-            if (currentOp === 'add' || currentOp === 'mul') {
+            if (currentOp === 'sub' || currentOp === 'mul') {
                 exerciseExtraCol = true;
             } else {
                 exerciseExtraCol = false;
@@ -843,30 +1055,33 @@
                 renderGrid();
             }
 
-            let num1, num2;
-
-            if (currentOp === 'mul') {
-                const maxVal1 = Math.pow(10, Math.max(1, maxDigits - 1)) * 3;
-                const maxVal2 = Math.pow(10, Math.max(1, maxDigits - 1));
-                num1 = Math.floor(Math.random() * (maxVal1 - 10)) + 10;
-                num2 = Math.floor(Math.random() * (maxVal2 - 2)) + 2;
-            } else if (currentOp === 'add') {
+            if (currentOp === 'add') {
                 const minVal = Math.pow(10, maxDigits - 1);
                 const maxVal = Math.pow(10, maxDigits) - 1;
-                num1 = Math.floor(Math.random() * (maxVal - minVal + 1)) + minVal;
-                num2 = Math.floor(Math.random() * (maxVal - minVal + 1)) + minVal;
+                for (let r = 0; r < addendRowsCount; r++) {
+                    const randNum = Math.floor(Math.random() * (maxVal - minVal + 1)) + minVal;
+                    fillOperandCells(`operand-${r + 1}`, randNum.toString());
+                }
+            } else if (currentOp === 'mul') {
+                const maxVal1 = Math.pow(10, Math.max(1, maxDigits - 1)) * 3;
+                const maxVal2 = Math.pow(10, Math.max(1, maxDigits - 1));
+                let num1 = Math.floor(Math.random() * (maxVal1 - 10)) + 10;
+                let num2 = Math.floor(Math.random() * (maxVal2 - 2)) + 2;
+                fillOperandCells('operand-1', num1.toString());
+                fillOperandCells('operand-2', num2.toString());
             } else if (currentOp === 'sub') {
                 const minVal = Math.pow(10, maxDigits - 1);
                 const maxVal = Math.pow(10, maxDigits) - 1;
-                num1 = Math.floor(Math.random() * (maxVal - minVal + 1)) + minVal;
-                num2 = Math.floor(Math.random() * (num1 - minVal + 1)) + minVal;
+                let num1 = Math.floor(Math.random() * (maxVal - minVal + 1)) + minVal;
+                let num2 = Math.floor(Math.random() * (num1 - minVal + 1)) + minVal;
+                fillOperandCells('operand-1', num1.toString());
+                fillOperandCells('operand-2', num2.toString());
             } else if (currentOp === 'div') {
-                num1 = Math.floor(Math.random() * (Math.pow(10, maxDigits) - Math.pow(10, maxDigits - 1))) + Math.pow(10, maxDigits - 1);
-                num2 = Math.floor(Math.random() * 8) + 2;
+                let num1 = Math.floor(Math.random() * (Math.pow(10, maxDigits) - Math.pow(10, maxDigits - 1))) + Math.pow(10, maxDigits - 1);
+                let num2 = Math.floor(Math.random() * 8) + 2;
+                fillOperandCells('operand-1', num1.toString());
+                fillOperandCells('operand-2', num2.toString());
             }
-
-            fillOperandCells('operand-1', num1.toString());
-            fillOperandCells('operand-2', num2.toString());
         }
 
         function fillOperandCells(targetType, valueStr) {
@@ -892,15 +1107,26 @@
             const feedback = document.getElementById('feedbackBox');
             feedback.classList.remove('hidden', 'bg-emerald-100', 'text-emerald-800', 'bg-rose-100', 'text-rose-800');
 
-            let num1 = getNumberFromCells('operand-1');
-            let num2 = getNumberFromCells('operand-2');
             let userResult = getNumberFromCells(currentOp === 'div' ? 'quotient' : 'result');
-
             let expected = 0;
-            if (currentOp === 'add') expected = num1 + num2;
-            if (currentOp === 'sub') expected = num1 - num2;
-            if (currentOp === 'mul') expected = num1 * num2;
-            if (currentOp === 'div') expected = Math.floor(num1 / num2);
+
+            if (currentOp === 'add') {
+                for (let r = 0; r < addendRowsCount; r++) {
+                    expected += getNumberFromCells(`operand-${r + 1}`);
+                }
+            } else if (currentOp === 'sub') {
+                let num1 = getNumberFromCells('operand-1');
+                let num2 = getNumberFromCells('operand-2');
+                expected = num1 - num2;
+            } else if (currentOp === 'mul') {
+                let num1 = getNumberFromCells('operand-1');
+                let num2 = getNumberFromCells('operand-2');
+                expected = num1 * num2;
+            } else if (currentOp === 'div') {
+                let num1 = getNumberFromCells('operand-1');
+                let num2 = getNumberFromCells('operand-2');
+                expected = Math.floor(num1 / num2);
+            }
 
             if (Math.abs(userResult - expected) < 0.01 && userResult !== 0) {
                 feedback.classList.add('bg-emerald-100', 'text-emerald-800');
@@ -916,14 +1142,22 @@
             const valBox = document.getElementById('solutionValue');
 
             if (box.classList.contains('hidden')) {
-                let num1 = getNumberFromCells('operand-1');
-                let num2 = getNumberFromCells('operand-2');
-
                 let res = 0;
-                if (currentOp === 'add') res = num1 + num2;
-                if (currentOp === 'sub') res = num1 - num2;
-                if (currentOp === 'mul') res = num1 * num2;
-                if (currentOp === 'div') {
+                if (currentOp === 'add') {
+                    for (let r = 0; r < addendRowsCount; r++) {
+                        res += getNumberFromCells(`operand-${r + 1}`);
+                    }
+                } else if (currentOp === 'sub') {
+                    let num1 = getNumberFromCells('operand-1');
+                    let num2 = getNumberFromCells('operand-2');
+                    res = num1 - num2;
+                } else if (currentOp === 'mul') {
+                    let num1 = getNumberFromCells('operand-1');
+                    let num2 = getNumberFromCells('operand-2');
+                    res = num1 * num2;
+                } else if (currentOp === 'div') {
+                    let num1 = getNumberFromCells('operand-1');
+                    let num2 = getNumberFromCells('operand-2');
                     if (num2 === 0) {
                         res = 'Impossibile';
                     } else {
