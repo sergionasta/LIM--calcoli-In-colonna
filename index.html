@@ -238,9 +238,9 @@
             </div>
             
             <!-- External carry pad for multiplication (present ONLY during multiplication) -->
-            <div id="externalCarryContainer" class="hidden absolute bottom-4 right-4 z-20 bg-white p-3 rounded-2xl shadow-lg border-2 border-amber-300 flex items-center space-x-2">
+            <div id="externalCarryContainer" onclick="selectExternalCarry()" class="hidden absolute bottom-4 right-4 z-20 bg-white p-3 rounded-2xl shadow-lg border-2 border-amber-300 flex items-center space-x-2 cursor-pointer transition-all">
                 <span class="text-xs font-bold text-amber-700 uppercase">Riporti:</span>
-                <input type="text" id="externalCarryInput" maxlength="5" class="w-20 text-center font-bold text-lg bg-amber-50 border border-amber-300 rounded-xl py-1 px-2 focus:outline-none focus:ring-2 focus:ring-amber-500">
+                <input type="text" id="externalCarryInput" onfocus="selectExternalCarry()" maxlength="5" class="w-20 text-center font-bold text-lg bg-amber-50 border border-amber-300 rounded-xl py-1 px-2 focus:outline-none">
             </div>
         </main>
 
@@ -297,7 +297,7 @@
         let divRows = 8;
         let showDecimals = false;
         let activeCell = null;
-        let exerciseExtraCol = false;
+        let isExternalCarrySelected = false;
 
         let cellValues = {};
 
@@ -475,7 +475,6 @@
             saveGridValuesToMemory();
             maxDigits = Math.max(2, Math.min(6, maxDigits + delta));
             document.getElementById('digitsDisplay').innerText = maxDigits;
-            exerciseExtraCol = false;
             renderGrid();
         }
 
@@ -517,10 +516,45 @@
             }
         }
 
+        function selectExternalCarry() {
+            if (activeCell) {
+                activeCell.classList.remove('selected');
+                activeCell = null;
+            }
+            isExternalCarrySelected = true;
+            const container = document.getElementById('externalCarryContainer');
+            if (container) {
+                container.classList.add('ring-4', 'ring-blue-500', 'bg-amber-100');
+            }
+            document.getElementById('activeCellLabel').innerText = "Casella: RIPORTI ESTERNI";
+        }
+
+        function deselectExternalCarry() {
+            isExternalCarrySelected = false;
+            const container = document.getElementById('externalCarryContainer');
+            if (container) {
+                container.classList.remove('ring-4', 'ring-blue-500', 'bg-amber-100');
+            }
+        }
+
+        function getSecondFactorDigitCount() {
+            let digits = '';
+            if (cellValues['mul-factor-2-row']) {
+                const keys = Object.keys(cellValues['mul-factor-2-row']).sort((a, b) => a - b);
+                digits = keys.map(k => cellValues['mul-factor-2-row'][k]).join('').trim();
+            } else {
+                const cells = Array.from(document.querySelectorAll('.grid-cell[data-row-key="mul-factor-2-row"]'));
+                digits = cells.map(c => c.innerText.trim()).join('');
+            }
+            const count = digits.replace(/[^0-9]/g, '').length;
+            return count > 0 ? count : 2;
+        }
+
         function renderGrid() {
             const container = document.getElementById('gridContainer');
             container.innerHTML = '';
             activeCell = null;
+            deselectExternalCarry();
             document.getElementById('activeCellLabel').innerText = "Seleziona Casella";
             document.getElementById('solutionBox').classList.add('hidden');
             document.getElementById('feedbackBox').classList.add('hidden');
@@ -529,12 +563,12 @@
 
             if (currentOp === 'add') {
                 renderAdditionGrid(container);
+            } else if (currentOp === 'sub') {
+                renderStandardGrid(container);
             } else if (currentOp === 'div') {
                 renderLargeDivisionGrid(container);
             } else if (currentOp === 'mul') {
                 renderMultiplicationGrid(container);
-            } else {
-                renderStandardGrid(container);
             }
 
             restoreGridValuesFromMemory();
@@ -550,8 +584,7 @@
         }
 
         function renderAdditionGrid(container) {
-            const effectiveExtra = exerciseExtraCol ? 1 : 0;
-            const cols = maxDigits + (showDecimals ? 2 : 0) + 1 + effectiveExtra;
+            const cols = 1 + maxDigits + (showDecimals ? 2 : 0) + 1;
             const grid = document.createElement('div');
             grid.className = `grid gap-3.5 items-center justify-center font-bold`;
             grid.style.gridTemplateColumns = `repeat(${cols}, minmax(75px, 105px))`;
@@ -567,7 +600,9 @@
             for (let r = 0; r < addendRowsCount; r++) {
                 const isLastAddend = (r === addendRowsCount - 1);
                 for (let i = 0; i < cols; i++) {
-                    if (i === cols - 1) {
+                    if (i === 0) {
+                        grid.appendChild(createEmptyCell());
+                    } else if (i === cols - 1) {
                         const symbolBox = document.createElement('div');
                         symbolBox.className = 'text-center font-extrabold text-blue-600 text-4xl md:text-5xl';
                         symbolBox.innerText = isLastAddend ? '=' : '+';
@@ -595,16 +630,16 @@
         }
 
         function renderStandardGrid(container) {
-            const effectiveExtra = (currentOp === 'sub' && exerciseExtraCol) ? 1 : 0;
-            const cols = maxDigits + (showDecimals ? 2 : 0) + 1 + effectiveExtra;
+            const cols = maxDigits + (showDecimals ? 2 : 0) + 1;
             const grid = document.createElement('div');
             grid.className = `grid gap-3.5 items-center justify-center font-bold`;
             grid.style.gridTemplateColumns = `repeat(${cols}, minmax(75px, 105px))`;
 
             let opSymbol = '-';
 
+            // Riga dei Prestiti: Nessuna casella nell'ultima colonna di destra (unità, ovvero i === cols - 2 senza decimali o indice corrispondente)
             for (let i = 0; i < cols; i++) {
-                if (i === cols - 1 || (currentOp === 'sub' && i === cols - 2)) {
+                if (i === cols - 1 || i === cols - 2) {
                     grid.appendChild(createEmptyCell());
                 } else {
                     grid.appendChild(createCell('carry', 'sub-carry-row', 'text-rose-600 text-xl border-2 border-dashed border-rose-300 bg-rose-50/70 rounded-xl h-14 md:h-16'));
@@ -650,22 +685,20 @@
         }
 
         function renderMultiplicationGrid(container) {
-            const effectiveExtra = exerciseExtraCol ? 1 : 0;
-            const cols = maxDigits + (showDecimals ? 2 : 0) + 2 + effectiveExtra;
+            const partialRows = getSecondFactorDigitCount();
+            const cols = 1 + maxDigits + (showDecimals ? 2 : 0) + 1;
             const grid = document.createElement('div');
             grid.className = `grid gap-3.5 items-center justify-center font-bold`;
             grid.style.gridTemplateColumns = `repeat(${cols}, minmax(75px, 105px))`;
 
-            // Riga 1: Riporti
             for (let i = 0; i < cols; i++) {
-                if (i === 0 || i === cols - 1 || i === cols - 2) {
+                if (i === cols - 1 || i === cols - 2) {
                     grid.appendChild(createEmptyCell());
                 } else {
                     grid.appendChild(createCell('carry', 'mul-carry-row', 'text-rose-600 text-xl border-2 border-dashed border-rose-300 bg-rose-50/70 rounded-xl h-14 md:h-16'));
                 }
             }
 
-            // Riga 2: Primo Fattore
             for (let i = 0; i < cols; i++) {
                 if (i === cols - 1) {
                     const symbolBox = document.createElement('div');
@@ -679,7 +712,6 @@
                 }
             }
 
-            // Riga 3: Secondo Fattore
             for (let i = 0; i < cols; i++) {
                 if (i === cols - 1) {
                     const symbolBox = document.createElement('div');
@@ -698,18 +730,13 @@
             line1.className = 'col-span-full border-b-4 border-slate-800 my-2 rounded-full';
             grid.appendChild(line1);
 
-            const partialRows = maxDigits > 2 ? 2 : 1;
-            
-            // Riga 4 e 5: Prodotti Parziali (Addendi)
             for (let r = 0; r < partialRows; r++) {
                 for (let i = 0; i < cols; i++) {
                     if (i === cols - 1) {
                         const symbolBox = document.createElement('div');
                         symbolBox.className = 'text-center font-extrabold text-slate-500 text-3xl';
-                        symbolBox.innerText = r === partialRows - 1 ? '=' : '+';
+                        symbolBox.innerText = (partialRows === 1 || r === partialRows - 1) ? '=' : '+';
                         grid.appendChild(symbolBox);
-                    } else if (i === 0) {
-                        grid.appendChild(createEmptyCell());
                     } else {
                         grid.appendChild(createCell('partial-prod', `mul-partial-row-${r}`, 'border-2 border-amber-300 bg-amber-50/60 text-amber-900 rounded-2xl h-20 md:h-24 text-4xl font-bold'));
                     }
@@ -722,7 +749,6 @@
                 grid.appendChild(line2);
             }
 
-            // Riga 6: Risultato
             for (let i = 0; i < cols; i++) {
                 if (i === cols - 1) {
                     grid.appendChild(createEmptyCell());
@@ -845,6 +871,7 @@
         }
 
         function selectCell(cell) {
+            deselectExternalCarry();
             if (activeCell) {
                 activeCell.classList.remove('selected');
             }
@@ -856,6 +883,19 @@
         }
 
         function typeDigit(val) {
+            const carryInput = document.getElementById('externalCarryInput');
+            
+            if (isExternalCarrySelected || document.activeElement === carryInput) {
+                if (val === 'DEL') {
+                    carryInput.value = carryInput.value.slice(0, -1);
+                } else if (val !== ',') {
+                    if (carryInput.value.length < 5) {
+                        carryInput.value += val;
+                    }
+                }
+                return;
+            }
+
             if (!activeCell) return;
 
             if (val === 'DEL') {
@@ -868,7 +908,6 @@
             const rowKey = activeCell.dataset.rowKey;
             if (!rowKey) return;
 
-            // REGOLA GENERALE: Nelle caselle dei riporti e dei prestiti NON avvengono spostamenti automatici
             if (rowKey.includes('carry')) {
                 return;
             }
@@ -880,7 +919,6 @@
 
                 if (currentIndex === -1) return;
 
-                // 1. Primo Fattore (Riga 2) -> da sinistra a destra, poi passa in basso a Fattore 2
                 if (rowKey === 'mul-factor-1-row') {
                     if (currentIndex < rowCells.length - 1) {
                         selectCell(rowCells[currentIndex + 1]);
@@ -891,10 +929,18 @@
                     return;
                 }
 
-                // 2. Secondo Fattore (Riga 3) -> da sinistra a destra, poi passa in basso al 1° Prodotto Parziale (da destra)
                 if (rowKey === 'mul-factor-2-row') {
-                    if (currentIndex < rowCells.length - 1) {
-                        selectCell(rowCells[currentIndex + 1]);
+                    saveGridValuesToMemory();
+                    const neededRows = getSecondFactorDigitCount();
+                    const currentRowsInDom = document.querySelectorAll('.grid-cell[data-row-key^="mul-partial-row-"]').length / (rowCells.length + 1);
+                    
+                    if (neededRows !== currentRowsInDom) {
+                        renderGrid();
+                    }
+
+                    const updatedF2Cells = Array.from(document.querySelectorAll('.grid-cell[data-row-key="mul-factor-2-row"]'));
+                    if (currentIndex < updatedF2Cells.length - 1) {
+                        selectCell(updatedF2Cells[currentIndex + 1]);
                     } else {
                         const p0Cells = Array.from(document.querySelectorAll('.grid-cell[data-row-key="mul-partial-row-0"]'));
                         if (p0Cells.length > 0) selectCell(p0Cells[p0Cells.length - 1]);
@@ -902,14 +948,15 @@
                     return;
                 }
 
-                // 3. Primo Prodotto Parziale (Riga 4) -> da destra a sinistra. Poi in basso a Riga 5 o Riga 6
-                if (rowKey === 'mul-partial-row-0') {
+                if (rowKey.startsWith('mul-partial-row-')) {
+                    const r = parseInt(rowKey.replace('mul-partial-row-', ''));
                     if (currentIndex > 0) {
                         selectCell(rowCells[currentIndex - 1]);
                     } else {
-                        const p1Cells = Array.from(document.querySelectorAll('.grid-cell[data-row-key="mul-partial-row-1"]'));
-                        if (p1Cells.length > 0) {
-                            selectCell(p1Cells[p1Cells.length - 1]);
+                        const nextRowKey = `mul-partial-row-${r + 1}`;
+                        const nextRowCells = Array.from(document.querySelectorAll(`.grid-cell[data-row-key="${nextRowKey}"]`));
+                        if (nextRowCells.length > 0) {
+                            selectCell(nextRowCells[nextRowCells.length - 1]);
                         } else {
                             const resCells = Array.from(document.querySelectorAll('.grid-cell[data-row-key="mul-result-row"]'));
                             if (resCells.length > 0) selectCell(resCells[resCells.length - 1]);
@@ -918,18 +965,6 @@
                     return;
                 }
 
-                // 4. Secondo Prodotto Parziale (Riga 5) -> da destra a sinistra. Poi in basso alla Riga 6 (Risultato)
-                if (rowKey === 'mul-partial-row-1') {
-                    if (currentIndex > 0) {
-                        selectCell(rowCells[currentIndex - 1]);
-                    } else {
-                        const resCells = Array.from(document.querySelectorAll('.grid-cell[data-row-key="mul-result-row"]'));
-                        if (resCells.length > 0) selectCell(resCells[resCells.length - 1]);
-                    }
-                    return;
-                }
-
-                // 5. Risultato (Riga 6) -> da destra a sinistra. Rimane sulla riga del risultato
                 if (rowKey === 'mul-result-row') {
                     if (currentIndex > 0) {
                         selectCell(rowCells[currentIndex - 1]);
@@ -947,7 +982,6 @@
 
                 if (currentIndex === -1) return;
 
-                // Addendi: da sinistra verso destra. Al termine di una riga, passa in basso all'addendo successivo o al Risultato (da destra)
                 if (rowKey.startsWith('addend-row-')) {
                     const rNum = parseInt(rowKey.replace('addend-row-', ''));
                     if (currentIndex < rowCells.length - 1) {
@@ -962,7 +996,6 @@
                     return;
                 }
 
-                // Risultato Addizione: da destra a sinistra. Una volta arrivati a sinistra, rimane sul risultato
                 if (rowKey === 'add-result-row') {
                     if (currentIndex > 0) {
                         selectCell(rowCells[currentIndex - 1]);
@@ -980,7 +1013,6 @@
 
                 if (currentIndex === -1) return;
 
-                // Minuendo: da sinistra a destra, poi passa in basso al Sottrando
                 if (rowKey === 'sub-minuend-row') {
                     if (currentIndex < rowCells.length - 1) {
                         selectCell(rowCells[currentIndex + 1]);
@@ -991,7 +1023,6 @@
                     return;
                 }
 
-                // Sottrando: da sinistra a destra, poi passa in basso al Risultato (da destra)
                 if (rowKey === 'sub-subtrahend-row') {
                     if (currentIndex < rowCells.length - 1) {
                         selectCell(rowCells[currentIndex + 1]);
@@ -1002,7 +1033,6 @@
                     return;
                 }
 
-                // Risultato Sottrazione: da destra a sinistra. Una volta completato a sinistra, rimane sul risultato
                 if (rowKey === 'sub-result-row') {
                     if (currentIndex > 0) {
                         selectCell(rowCells[currentIndex - 1]);
@@ -1033,6 +1063,7 @@
                 cell.innerText = '';
             });
             document.getElementById('externalCarryInput').value = '';
+            deselectExternalCarry();
             document.getElementById('feedbackBox').classList.add('hidden');
             document.getElementById('solutionBox').classList.add('hidden');
         }
@@ -1040,20 +1071,7 @@
         function generateRandomOperation() {
             resetGridValues();
             clearCanvas();
-
-            if (currentOp === 'sub' || currentOp === 'mul') {
-                exerciseExtraCol = true;
-            } else {
-                exerciseExtraCol = false;
-            }
-
-            if ((currentOp === 'add' || currentOp === 'mul') && maxDigits < 6) {
-                maxDigits += 1;
-                document.getElementById('digitsDisplay').innerText = maxDigits;
-                renderGrid();
-            } else {
-                renderGrid();
-            }
+            renderGrid();
 
             if (currentOp === 'add') {
                 const minVal = Math.pow(10, maxDigits - 1);
@@ -1069,6 +1087,9 @@
                 let num2 = Math.floor(Math.random() * (maxVal2 - 2)) + 2;
                 fillOperandCells('operand-1', num1.toString());
                 fillOperandCells('operand-2', num2.toString());
+                
+                saveGridValuesToMemory();
+                renderGrid();
             } else if (currentOp === 'sub') {
                 const minVal = Math.pow(10, maxDigits - 1);
                 const maxVal = Math.pow(10, maxDigits) - 1;
@@ -1108,6 +1129,11 @@
             feedback.classList.remove('hidden', 'bg-emerald-100', 'text-emerald-800', 'bg-rose-100', 'text-rose-800');
 
             let userResult = getNumberFromCells(currentOp === 'div' ? 'quotient' : 'result');
+            
+            if (currentOp === 'mul' && userResult === 0 && getSecondFactorDigitCount() === 1) {
+                userResult = getNumberFromCells('partial-prod');
+            }
+
             let expected = 0;
 
             if (currentOp === 'add') {
